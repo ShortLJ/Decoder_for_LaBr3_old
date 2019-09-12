@@ -51,8 +51,8 @@ void NewCanvas(TCanvas *c1, TH1D *h1, TH1D *h2, TH1D *h3, TH1D *h4);
 
 //////////////////////main function////////////////////////////////
 
-void newdatareading_offline(){
-	char filename[90]="MixSource_att_run01";
+void newdatareading_offline1(char filename[90]){
+//	char filename[90]="Cs137_att99_run02_Xsc";
 	FILE *datafile = fopen(Form("%s.dat",filename),"rb");
 	if(datafile==NULL){
 		fputs("File error\n",stderr);
@@ -63,9 +63,9 @@ void newdatareading_offline(){
 
 	TFile *treefile = new TFile(Form("../../DecodedDataFiles/%s.root",filename),"recreate");
 	TString str0 = TString("Set_info\n");
-	TString str1 = TString("MixSource, attenuator \n");
-	TString str2 = TString(" ch0: Scint-38*38LaBr3(20170809-0) PMT-R13408(AA0037) HV-1500V from HVch0,att9dB\n");
-	TString str3 = TString(" ch1: Scint-38*38LaBr3(20170809-1) PMT-R13408(AA0038) HV-1500V from HVch1,att4dB\n");
+	TString str1 = TString("Cs137, attenuator,Xsc \n");
+	TString str2 = TString(" ch0: Scint-38*38LaBr3(20170809-1) PMT-R13408(AA0037) HV-1500V from HVch0,att8dB\n");
+	TString str3 = TString(" ch1: Scint-38*38LaBr3(20170809-0) PMT-R13408(AA0038) HV-1500V from HVch1,att8dB\n");
 	TObjString *TObjS = new TObjString(str0+str1+str2+str3);
 	TObjS->Write();
 
@@ -156,7 +156,7 @@ void newdatareading_offline(){
 	c2->Divide(3,2);
 
 	c2->cd(1)->SetLogz();
-	TH2D *h2_QDCch1_QDCch0 = new TH2D("MixSource QDC(ch1) by QDC(ch0)", "MixSource QDC(ch1) by QDC(ch0);QDC,ch0 (qdc);QDC,ch1 (qdc)",2000,0,300000,2000,0,300000);
+	TH2D *h2_QDCch1_QDCch0 = new TH2D("Cs137 QDC(ch1) by QDC(ch0)", "Cs137 QDC(ch1) by QDC(ch0);QDC,ch0 (qdc);QDC,ch1 (qdc)",2000,0,300000,2000,0,300000);
 	h2_QDCch1_QDCch0->Draw("COLZ");
 	TLine *lEEvl = new TLine(ch0Ecut_mean-ch0Ecut_FWHM/2,0,ch0Ecut_mean-ch0Ecut_FWHM/2,300000);
 	TLine *lEEvu = new TLine(ch0Ecut_mean+ch0Ecut_FWHM/2,0,ch0Ecut_mean+ch0Ecut_FWHM/2,300000);
@@ -188,7 +188,7 @@ void newdatareading_offline(){
 	h1_TDCdif->Draw();
 
 	c2->cd(5)->SetLogz();
-	TH2D *h2_TDCdif_QDCch0 = new TH2D(Form("MixSource TDCcf dif(ch0-ch1) by QDC(ch0), (ch1 %.0fqdc)",ch1Ecut_mean),Form("MixSource TDCcf dif by ch0 QDC (ch1 %.0fqdc);QDC,ch0(qdc);TDC dif, ch0-ch1(ns)",ch1Ecut_mean),2000,0,300000,600,-15,15);
+	TH2D *h2_TDCdif_QDCch0 = new TH2D(Form("Cs137 TDCcf dif(ch0-ch1) by QDC(ch0), (ch1 %.0fqdc)",ch1Ecut_mean),Form("Cs137 TDCcf dif by ch0 QDC (ch1 %.0fqdc);QDC,ch0(qdc);TDC dif, ch0-ch1(ns)",ch1Ecut_mean),2000,0,300000,600,-15,15);
 	h2_TDCdif_QDCch0->Draw("COLZ");
 	TLine *lE0vl2 = new TLine(ch0Ecut_mean-ch0Ecut_FWHM/2,-15,ch0Ecut_mean-ch0Ecut_FWHM/2,15);
 	TLine *lE0vu2 = new TLine(ch0Ecut_mean+ch0Ecut_FWHM/2,-15,ch0Ecut_mean+ch0Ecut_FWHM/2,15);
@@ -196,7 +196,7 @@ void newdatareading_offline(){
 	lE0vu2 -> Draw("same");
 
 	c2->cd(6)->SetLogz();
-	TH2D *h2_TDCdif_QDCch0_nocut = new TH2D("MixSource TDCcf dif(ch0-ch1) by QDC(ch0),nocut ","MixSource TDCcf dif by ch0 QDC, nocut;QDC,ch0(qdc);TDC dif, ch0-ch1(ns)",2000,0,300000, 600, -15, 15);
+	TH2D *h2_TDCdif_QDCch0_nocut = new TH2D("Cs137 TDCcf dif(ch0-ch1) by QDC(ch0),nocut ","Cs137 TDCcf dif by ch0 QDC, nocut;QDC,ch0(qdc);TDC dif, ch0-ch1(ns)",2000,0,300000, 600, -15, 15);
 	h2_TDCdif_QDCch0_nocut->Draw("COLZ");
 
 //file

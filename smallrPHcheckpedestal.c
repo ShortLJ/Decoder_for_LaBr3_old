@@ -51,9 +51,9 @@ void NewCanvas(TCanvas *c1, TH1D *h1, TH1D *h2, TH1D *h3, TH1D *h4);
 
 //////////////////////main function////////////////////////////////
 
-void newdatareading_offline(){
-	char filename[90]="MixSource_att_run01";
-	FILE *datafile = fopen(Form("%s.dat",filename),"rb");
+void smallrPHcheckpedestal(){
+	char filename[90]="Nosource_att66_run01";
+	FILE *datafile = fopen(Form("%s.dat",filename),"rb");	// moved from latter to here
 	if(datafile==NULL){
 		fputs("File error\n",stderr);
 		exit(1);
@@ -61,11 +61,11 @@ void newdatareading_offline(){
 
 //tree
 
-	TFile *treefile = new TFile(Form("../../DecodedDataFiles/%s.root",filename),"recreate");
+	TFile *treefile = new TFile(Form("../../DecodedDataFiles/%s_smallrPHcheckpedestal.root",filename),"recreate");
 	TString str0 = TString("Set_info\n");
-	TString str1 = TString("MixSource, attenuator \n");
-	TString str2 = TString(" ch0: Scint-38*38LaBr3(20170809-0) PMT-R13408(AA0037) HV-1500V from HVch0,att9dB\n");
-	TString str3 = TString(" ch1: Scint-38*38LaBr3(20170809-1) PMT-R13408(AA0038) HV-1500V from HVch1,att4dB\n");
+	TString str1 = TString("Na22, attenuator,Xsc,threshold -192ADC \n");
+	TString str2 = TString(" ch0: Scint-38*38LaBr3(20170809-1) PMT-R13408(AA0037) HV-1500V from HVch0,att6dB\n");
+	TString str3 = TString(" ch1: Scint-38*38LaBr3(20170809-0) PMT-R13408(AA0038) HV-1500V from HVch1,att6dB\n");
 	TObjString *TObjS = new TObjString(str0+str1+str2+str3);
 	TObjS->Write();
 
@@ -105,7 +105,7 @@ void newdatareading_offline(){
 	tree->Branch("NHitCh", &NHitCh, "NHitCh/i");
 	tree->Branch("Channel", Channel, "Channel[NHitCh]/i");
 //	tree->Branch("waveform_length", &waveform_length, "waveform_length/i");
-//	tree->Branch("waveform", waveform,"waveform[NHitCh][1024]/F");
+	tree->Branch("waveform", waveform,"waveform[NHitCh][1024]/F");
 //	tree->Branch("waveformtime", waveformtime,"waveformtime[waveform_length]/F");
 	tree->Branch("rPH", rPH, "rPH[NHitCh]/F");
 	tree->Branch("QDC", QDC, "QDC[NHitCh]/F");
@@ -125,18 +125,18 @@ void newdatareading_offline(){
 	TH1D *h1_QDC[NOpCh];
 	TH1D *h1_TDC[NOpCh];
 
-	h1_rPH[0] = new TH1D("h1_rPH[0]","h1_rPH[0];rPH;count/rPH", 4096, 0, 4096);
-	h1_QDC[0] = new TH1D("h1_QDC[0]","h1_QDC[0];QDC;count/150QDC", 2000, 0, 300000);
+	h1_rPH[0] = new TH1D("h1_min[0]","h1_min[0];min;count/ADC", 4085, 11, 4096);
+	h1_QDC[0] = new TH1D("h1_QDC[0]","h1_QDC[0];QDC;count/150QDC", 2000, 0, 600000);
 	h1_TDC[0] = new TH1D("h1_TDC[0]","h1_TDC[0];TDC (ns);count/0.4ns",1024,0,410);
-	h1_rPH[1] = new TH1D("h1_rPH[1]","h1_rPH[1];rPH;count/rPH", 4096, 0, 4096);
-	h1_QDC[1] = new TH1D("h1_QDC[1]","h1_QDC[1];QDC;count/150QDC", 2000, 0, 300000);
+	h1_rPH[1] = new TH1D("h1_min[1]","h1_min[1];min;count/ADC", 4085, 11, 4096);
+	h1_QDC[1] = new TH1D("h1_QDC[1]","h1_QDC[1];QDC;count/150QDC", 2000, 0, 600000);
 	h1_TDC[1] = new TH1D("h1_TDC[1]","h1_TDC[1];TDC (ns);count/0.4ns",1024,0,410);
 //	NewCanvas(c1, h1_QDC[0], h1_QDC[1], h1_TDC[0], h1_TDC[1]);
 	c1->Divide(3,2);
-	c1->cd(1)->SetGridx();	h1_rPH[0]->Draw();
+	c1->cd(1)->SetGridx();	c1->cd(1)->SetLogy();	h1_rPH[0]->Draw();	h1_rPH[0]->GetXaxis()->SetRangeUser(3500,4096);
 	c1->cd(2)->SetGridx();	h1_QDC[0]->Draw();
 	c1->cd(3)->SetGridx();	h1_TDC[0]->Draw();
-	c1->cd(4)->SetGridx();	h1_rPH[1]->Draw();
+	c1->cd(4)->SetGridx();	c1->cd(4)->SetLogy();	h1_rPH[1]->Draw();	h1_rPH[1]->GetXaxis()->SetRangeUser(3500,4096);
 	c1->cd(5)->SetGridx();	h1_QDC[1]->Draw();
 	c1->cd(6)->SetGridx();	h1_TDC[1]->Draw();
 
@@ -156,7 +156,7 @@ void newdatareading_offline(){
 	c2->Divide(3,2);
 
 	c2->cd(1)->SetLogz();
-	TH2D *h2_QDCch1_QDCch0 = new TH2D("MixSource QDC(ch1) by QDC(ch0)", "MixSource QDC(ch1) by QDC(ch0);QDC,ch0 (qdc);QDC,ch1 (qdc)",2000,0,300000,2000,0,300000);
+	TH2D *h2_QDCch1_QDCch0 = new TH2D("Na22 QDC(ch1) by QDC(ch0)", "Na22 QDC(ch1) by QDC(ch0);QDC,ch0 (qdc);QDC,ch1 (qdc)",2000,0,300000,2000,0,300000);
 	h2_QDCch1_QDCch0->Draw("COLZ");
 	TLine *lEEvl = new TLine(ch0Ecut_mean-ch0Ecut_FWHM/2,0,ch0Ecut_mean-ch0Ecut_FWHM/2,300000);
 	TLine *lEEvu = new TLine(ch0Ecut_mean+ch0Ecut_FWHM/2,0,ch0Ecut_mean+ch0Ecut_FWHM/2,300000);
@@ -188,7 +188,7 @@ void newdatareading_offline(){
 	h1_TDCdif->Draw();
 
 	c2->cd(5)->SetLogz();
-	TH2D *h2_TDCdif_QDCch0 = new TH2D(Form("MixSource TDCcf dif(ch0-ch1) by QDC(ch0), (ch1 %.0fqdc)",ch1Ecut_mean),Form("MixSource TDCcf dif by ch0 QDC (ch1 %.0fqdc);QDC,ch0(qdc);TDC dif, ch0-ch1(ns)",ch1Ecut_mean),2000,0,300000,600,-15,15);
+	TH2D *h2_TDCdif_QDCch0 = new TH2D(Form("Na22 TDCcf dif(ch0-ch1) by QDC(ch0), (ch1 %.0fqdc)",ch1Ecut_mean),Form("Na22 TDCcf dif by ch0 QDC (ch1 %.0fqdc);QDC,ch0(qdc);TDC dif, ch0-ch1(ns)",ch1Ecut_mean),2000,0,300000,600,-15,15);
 	h2_TDCdif_QDCch0->Draw("COLZ");
 	TLine *lE0vl2 = new TLine(ch0Ecut_mean-ch0Ecut_FWHM/2,-15,ch0Ecut_mean-ch0Ecut_FWHM/2,15);
 	TLine *lE0vu2 = new TLine(ch0Ecut_mean+ch0Ecut_FWHM/2,-15,ch0Ecut_mean+ch0Ecut_FWHM/2,15);
@@ -196,7 +196,7 @@ void newdatareading_offline(){
 	lE0vu2 -> Draw("same");
 
 	c2->cd(6)->SetLogz();
-	TH2D *h2_TDCdif_QDCch0_nocut = new TH2D("MixSource TDCcf dif(ch0-ch1) by QDC(ch0),nocut ","MixSource TDCcf dif by ch0 QDC, nocut;QDC,ch0(qdc);TDC dif, ch0-ch1(ns)",2000,0,300000, 600, -15, 15);
+	TH2D *h2_TDCdif_QDCch0_nocut = new TH2D("Na22 TDCcf dif(ch0-ch1) by QDC(ch0),nocut ","Na22 TDCcf dif by ch0 QDC, nocut;QDC,ch0(qdc);TDC dif, ch0-ch1(ns)",2000,0,300000, 600, -15, 15);
 	h2_TDCdif_QDCch0_nocut->Draw("COLZ");
 
 //file
@@ -224,8 +224,8 @@ void newdatareading_offline(){
 	int event_flag=1;
 
 	int ient=0;
-	for (pqrc_flag[0]=0; ient<numevent; ){
-//	for (pqrc_flag[0]=0; CoinEventNumber<9000000; ){
+//	for (pqrc_flag[0]=0; ient<numevent; ){
+	for (pqrc_flag[0]=0; CoinEventNumber<9000000; ){
 		Curr_ient = ient;	Elap_ient = Curr_ient - Prev_ient;
 		Curr_CoinN = CoinEventNumber;	Elap_CoinN = Curr_CoinN - Prev_CoinN;
 		Curr_Time = get_time();	Elap_Time = Curr_Time - Prev_Time; 
@@ -282,17 +282,23 @@ void newdatareading_offline(){
 			EventNumber = EventNumberch[0]; TrigTimeTag = TrigTimeTagch[0];
 
 			NHitCh=0;
-			for (int ich=0; ich<NOpCh; ich++){
-				rPHch[ich] = pulseheight(waveformch[ich]);
-				if(rPHch[ich]>=126){
+			//rPHch[0] = getminimum(waveformch[0]);
+			//rPHch[1] = getminimum(waveformch[1]);
+			rPHch[0] = pulseheight(waveformch[0]);
+			rPHch[1] = pulseheight(waveformch[1]);
+			for (int ich=0; ich<2; ich++){
+				//rPHch[ich] = pulseheight(waveformch[ich]);
+				//if(rPHch[(ich+1)%2]>3960){
+				if(rPHch[(ich+1)%2]<15){
 					QDCch[ich] = QDCf(waveformch[ich]);
 					TDCch[ich] = TDCcf(waveformch[ich], waveformtime, 10, 0.15);
-					h1_rPH[ich]->Fill(rPHch[ich]);
+					h1_rPH[ich]->Fill(getminimum(waveformch[ich]));
+					//h1_rPH[ich]->Fill(rPHch[ich]);
 					h1_QDC[ich]->Fill(QDCch[ich]);
 					h1_TDC[ich]->Fill(TDCch[ich]);
 
 					Channel[NHitCh]=ich;
-//					waveformcopy(waveform[NHitCh],waveformch[ich]);
+					waveformcopy(waveform[NHitCh],waveformch[ich]);
 					rPH[NHitCh] = rPHch[ich];
 					QDC[NHitCh] = QDCch[ich];
 					TDC[NHitCh] = TDCch[ich];
@@ -305,13 +311,13 @@ void newdatareading_offline(){
 //			if(TDC[0]-TDC[1]>50){ient++; continue;}
 //			if(TDC[1]-TDC[0]>50){ient++; continue;}
 			if(NHitCh==2){
-				if((ch1Ecut_mean-ch1Ecut_FWHM/2)<QDC[1] && QDC[1]<(ch1Ecut_mean+ch1Ecut_FWHM/2)){
+			//	if((ch1Ecut_mean-ch1Ecut_FWHM/2)<QDC[1] && QDC[1]<(ch1Ecut_mean+ch1Ecut_FWHM/2)){
 					h1_QDCch0->Fill(QDC[0]);
 					h2_TDCdif_QDCch0->Fill(QDC[0], TDC[0] - TDC[1]);
-					if((ch0Ecut_mean-ch0Ecut_FWHM/2)<QDC[0] && QDC[0]<(ch0Ecut_mean+ch0Ecut_FWHM/2)){
+			//		if((ch0Ecut_mean-ch0Ecut_FWHM/2)<QDC[0] && QDC[0]<(ch0Ecut_mean+ch0Ecut_FWHM/2)){
 						h1_TDCdif->Fill(TDC[0]-TDC[1]);
-					}
-				}
+			//		}
+			//	}
 				h2_TDCdif_QDCch0_nocut->Fill(QDC[0],TDC[0]-TDC[1]);
 				h2_QDCch1_QDCch0 -> Fill(QDC[0],QDC[1]);
 				h1_QDCch1->Fill(QDC[1]);

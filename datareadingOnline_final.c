@@ -43,13 +43,13 @@ void NewCanvas(TCanvas *c1, TH1D *h1, TH1D *h2, TH1D *h3, TH1D *h4);
 //////////////////////main function////////////////////////////////
 
 void datareadingOnline_final(){
-	char filename[90]="Co60_att_run01";
+	char filename[90]="Na22_att_run04";
 
 //tree
 
 	TFile *treefile = new TFile(Form("%s_final.root",filename),"recreate");
 	TString str0 = TString("Set_info\n");
-	TString str1 = TString("Co60, attenuator \n");
+	TString str1 = TString("Na22, attenuator \n");
 	TString str2 = TString(" ch0: Scint-38*38LaBr3(20170809) PMT-R13408(AA0037) HV-1500V,att9dB from HVch1\n");
 	TString str3 = TString(" ch1: Scint-38*38LaBr3(UNKNOWN) PMT-R13408(AA0038) HV-1500V,att4dB from HVch0\n");
 	TObjString *TObjS = new TObjString(str0+str1+str2+str3);
@@ -136,7 +136,7 @@ void datareadingOnline_final(){
 	c2->Divide(3,2);
 
 	c2->cd(1)->SetLogz();
-	TH2D *h2_QDCch1_QDCch0 = new TH2D("Co60 QDC(ch1) by QDC(ch0)", "Co60 QDC(ch1) by QDC(ch0);QDC,ch0 (qdc);QDC,ch1 (qdc)",2000,0,300000,2000,0,300000);
+	TH2D *h2_QDCch1_QDCch0 = new TH2D("Na22 QDC(ch1) by QDC(ch0)", "Na22 QDC(ch1) by QDC(ch0);QDC,ch0 (qdc);QDC,ch1 (qdc)",2000,0,300000,2000,0,300000);
 	h2_QDCch1_QDCch0->Draw("COLZ");
 	TLine *lEEvl = new TLine(ch0Ecut_mean-ch0Ecut_FWHM/2,0,ch0Ecut_mean-ch0Ecut_FWHM/2,300000);
 	TLine *lEEvu = new TLine(ch0Ecut_mean+ch0Ecut_FWHM/2,0,ch0Ecut_mean+ch0Ecut_FWHM/2,300000);
@@ -168,7 +168,7 @@ void datareadingOnline_final(){
 	h1_TDCdif->Draw();
 
 	c2->cd(5)->SetLogz();
-	TH2D *h2_TDCdif_QDCch0 = new TH2D(Form("Co60 TDCcf dif(ch0-ch1) by QDC(ch0), (ch1 %.0fqdc)",ch1Ecut_mean),Form("Co60 TDCcf dif by ch0 QDC (ch1 %.0fqdc);QDC,ch0(qdc);TDC dif, ch0-ch1(ns)",ch1Ecut_mean),2000,0,300000,600,-15,15);
+	TH2D *h2_TDCdif_QDCch0 = new TH2D(Form("Na22 TDCcf dif(ch0-ch1) by QDC(ch0), (ch1 %.0fqdc)",ch1Ecut_mean),Form("Na22 TDCcf dif by ch0 QDC (ch1 %.0fqdc);QDC,ch0(qdc);TDC dif, ch0-ch1(ns)",ch1Ecut_mean),2000,0,300000,600,-15,15);
 	h2_TDCdif_QDCch0->Draw("COLZ");
 	TLine *lE0vl2 = new TLine(ch0Ecut_mean-ch0Ecut_FWHM/2,-15,ch0Ecut_mean-ch0Ecut_FWHM/2,15);
 	TLine *lE0vu2 = new TLine(ch0Ecut_mean+ch0Ecut_FWHM/2,-15,ch0Ecut_mean+ch0Ecut_FWHM/2,15);
@@ -176,7 +176,7 @@ void datareadingOnline_final(){
 	lE0vu2 -> Draw("same");
 
 	c2->cd(6)->SetLogz();
-	TH2D *h2_TDCdif_QDCch0_nocut = new TH2D("Co60 TDCcf dif(ch0-ch1) by QDC(ch0),nocut ","Co60 TDCcf dif by ch0 QDC, nocut;QDC,ch0(qdc);TDC dif, ch0-ch1(ns)",2000,0,300000, 600, -15, 15);
+	TH2D *h2_TDCdif_QDCch0_nocut = new TH2D("Na22 TDCcf dif(ch0-ch1) by QDC(ch0),nocut ","Na22 TDCcf dif by ch0 QDC, nocut;QDC,ch0(qdc);TDC dif, ch0-ch1(ns)",2000,0,300000, 600, -15, 15);
 	h2_TDCdif_QDCch0_nocut->Draw("COLZ");
 
 //file
