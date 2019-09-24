@@ -37,10 +37,10 @@ void NewCanvas(TCanvas *c1, TH1D *h1, TH1D *h2, TH1D *h3, TH1D *h4);
 	c1 = new TCanvas("Decoding","Decoding",1200,800);
 	c1->Divide(2,2);
 	c1->cd(1);
-//	h1_QDC[0]->GetXaxis()->SetRangeUser(5000,QDCrange);
+//	h1_QDC[0]->GetXaxis()->SetRangeUser(5000,600000);
 	h1->Draw();
 	c1->cd(2);
-//	h1_QDC[1]->GetXaxis()->SetRangeUser(5000,QDCrange);
+//	h1_QDC[1]->GetXaxis()->SetRangeUser(5000,600000);
 	h2->Draw();
 	c1->cd(3);
 	h3->Draw();
@@ -52,8 +52,7 @@ void NewCanvas(TCanvas *c1, TH1D *h1, TH1D *h2, TH1D *h3, TH1D *h4);
 //////////////////////main function////////////////////////////////
 
 void newdatareadingOnline(){
-	char filename[90]="Co60_att66_newcalib_run01";
-	//char filename[90]="Co60_att66_newcalib_run02";
+	char filename[90]="Na22_att66_run02_Xsc_lowtrhd";
 	FILE *datafile = fopen(Form("%s.dat",filename),"rb");	// moved from latter to here
 	if(datafile==NULL){
 		fputs("File error\n",stderr);
@@ -62,11 +61,11 @@ void newdatareadingOnline(){
 
 //tree
 
-	TFile *treefile = new TFile(Form("../../DecodedDataFiles/%s.root",filename),"recreate");
+	TFile *treefile = new TFile(Form("../../DecodedDataFiles/%s_cf3.root",filename),"recreate");
 	TString str0 = TString("Set_info\n");
-	TString str1 = TString("Co60, attenuator \n");
-	TString str2 = TString(" ch0: Scint-38*38LaBr3(20170809-1) PMT-R13408(AA0037) HV-1500V from HVch0,att6dB\n");
-	TString str3 = TString(" ch1: Scint-38*38LaBr3(20170809-0) PMT-R13408(AA0038) HV-1500V from HVch1,att6dB\n");
+	TString str1 = TString("Ba133, attenuator,Xsc,0xBF0 \n");
+	TString str2 = TString(" ch0: Scint-38*38LaBr3(20170809-1) PMT-R13408(AA0037) HV-1500V from HVch0,att0dB\n");
+	TString str3 = TString(" ch1: Scint-38*38LaBr3(20170809-0) PMT-R13408(AA0038) HV-1500V from HVch1,att0dB\n");
 	TObjString *TObjS = new TObjString(str0+str1+str2+str3);
 	TObjS->Write();
 
@@ -75,19 +74,18 @@ void newdatareadingOnline(){
 	UInt_t OpCh;
 	UInt_t waveform_length = 1024;
 	Float_t waveformch[NOpCh][waveform_length];
-	UInt_t StartIndexCellch[NOpCh];
 	UInt_t EventNumberch[NOpCh];
 	UInt_t TrigTimeTagch[NOpCh];
 	Float_t rPHch[NOpCh];
 	Float_t QDCch[NOpCh];
 	Float_t TDCch[NOpCh];
+	Float_t TDC3ch[NOpCh];
 
 	TTree *tree = new TTree("wavedata","wavedata");
 	UInt_t CoinEventNumber = 0;
 	UInt_t EventSize;
 	UInt_t BoardID;
-	UInt_t StartIndexCell;
-	//UInt_t Group;
+	UInt_t Group;
 	UInt_t NHitCh = NOpCh;	//number of hit channels, maximum NOpCh
 	UInt_t Channel[NHitCh];
 	UInt_t EventNumber;
@@ -98,13 +96,13 @@ void newdatareadingOnline(){
 	Float_t rPH[NHitCh];
 	Float_t QDC[NHitCh];
 	Float_t TDC[NHitCh];
+	Float_t TDC3[NHitCh];
 
 	tree->Branch("EventNumber", &EventNumber, "EventNumber/i");
 	tree->Branch("TrigTimeTag", &TrigTimeTag, "TrigTimeTag/i");
 	tree->Branch("EventSize", &EventSize, "EventSize/i");
 	tree->Branch("BoardID", &BoardID, "BoardID/i");
-	tree->Branch("StartIndexCell", &StartIndexCell, "StartIndexCell/i");
-	//tree->Branch("Group", &Group, "Group/i");
+	tree->Branch("Group", &Group, "Group/i");
 	tree->Branch("CoinEventNumber", &CoinEventNumber, "CoinEventNumber/i");
 	tree->Branch("NHitCh", &NHitCh, "NHitCh/i");
 	tree->Branch("Channel", Channel, "Channel[NHitCh]/i");
@@ -114,6 +112,7 @@ void newdatareadingOnline(){
 	tree->Branch("rPH", rPH, "rPH[NHitCh]/F");
 	tree->Branch("QDC", QDC, "QDC[NHitCh]/F");
 	tree->Branch("TDC", TDC, "TDC[NHitCh]/F");
+	tree->Branch("TDC3", TDC3, "TDC3[NHitCh]/F");
 
 	Float_t samplingrate = 2.5;  // GS/s
 	Float_t sampletime = 1.0/samplingrate;  // ns
@@ -129,13 +128,11 @@ void newdatareadingOnline(){
 	TH1D *h1_QDC[NOpCh];
 	TH1D *h1_TDC[NOpCh];
 
-	Int_t QDCrange = 300000;
-
 	h1_rPH[0] = new TH1D("h1_rPH[0]","h1_rPH[0];rPH;count/rPH", 4096, 0, 4096);
-	h1_QDC[0] = new TH1D("h1_QDC[0]","h1_QDC[0];QDC;count/150QDC", 2000, 0, QDCrange);
+	h1_QDC[0] = new TH1D("h1_QDC[0]","h1_QDC[0];QDC;count/150QDC", 2000, 0, 600000);
 	h1_TDC[0] = new TH1D("h1_TDC[0]","h1_TDC[0];TDC (ns);count/0.4ns",1024,0,410);
 	h1_rPH[1] = new TH1D("h1_rPH[1]","h1_rPH[1];rPH;count/rPH", 4096, 0, 4096);
-	h1_QDC[1] = new TH1D("h1_QDC[1]","h1_QDC[1];QDC;count/150QDC", 2000, 0, QDCrange);
+	h1_QDC[1] = new TH1D("h1_QDC[1]","h1_QDC[1];QDC;count/150QDC", 2000, 0, 600000);
 	h1_TDC[1] = new TH1D("h1_TDC[1]","h1_TDC[1];TDC (ns);count/0.4ns",1024,0,410);
 //	NewCanvas(c1, h1_QDC[0], h1_QDC[1], h1_TDC[0], h1_TDC[1]);
 	c1->Divide(3,2);
@@ -147,15 +144,15 @@ void newdatareadingOnline(){
 	c1->cd(6)->SetGridx();	h1_TDC[1]->Draw();
 
 //canvas2
-	const double ch1Ecut_mean = QDCrange/2;
-	const double ch1Ecut_FWHM = QDCrange;
-	const double ch0Ecut_mean = QDCrange/2;
-	const double ch0Ecut_FWHM = QDCrange;
+	const double ch1Ecut_mean = 300000;
+	const double ch1Ecut_FWHM = 600000;
+	const double ch0Ecut_mean = 300000;
+	const double ch0Ecut_FWHM = 600000;
 
-//	const double ch1Ecut_mean = 53500;
-//	const double ch1Ecut_FWHM = 6000;
-//	const double ch0Ecut_mean = 31500;
-//	const double ch0Ecut_FWHM = 6000;
+//	const double ch1Ecut_mean = 206000;
+//	const double ch1Ecut_FWHM = 20000;
+//	const double ch0Ecut_mean = 212000;
+//	const double ch0Ecut_FWHM = 20000;
 
 
 //	const double ch1Ecut_mean = 6.98174e+04;
@@ -168,22 +165,19 @@ void newdatareadingOnline(){
 	c2->Divide(3,2);
 
 	c2->cd(1)->SetLogz();
-	c2->cd(1)->SetGridx();
-	c2->cd(1)->SetGridy();
-	TH2D *h2_QDCch1_QDCch0 = new TH2D("Co60 QDC(ch1) by QDC(ch0)", "Co60 QDC(ch1) by QDC(ch0);QDC,ch0 (qdc);QDC,ch1 (qdc)",2000,0,QDCrange,2000,0,QDCrange);
+	TH2D *h2_QDCch1_QDCch0 = new TH2D("Ba133 QDC(ch1) by QDC(ch0)", "Ba133 QDC(ch1) by QDC(ch0);QDC,ch0 (qdc);QDC,ch1 (qdc)",2000,0,600000,2000,0,600000);
 	h2_QDCch1_QDCch0->Draw("COLZ");
-	TLine *lEEvl = new TLine(ch0Ecut_mean-ch0Ecut_FWHM/2,0,ch0Ecut_mean-ch0Ecut_FWHM/2,QDCrange);
-	TLine *lEEvu = new TLine(ch0Ecut_mean+ch0Ecut_FWHM/2,0,ch0Ecut_mean+ch0Ecut_FWHM/2,QDCrange);
-	TLine *lEEhl = new TLine(0,ch1Ecut_mean-ch1Ecut_FWHM/2,QDCrange,ch1Ecut_mean-ch1Ecut_FWHM/2);
-	TLine *lEEhu = new TLine(0,ch1Ecut_mean+ch1Ecut_FWHM/2,QDCrange,ch1Ecut_mean+ch1Ecut_FWHM/2);
+	TLine *lEEvl = new TLine(ch0Ecut_mean-ch0Ecut_FWHM/2,0,ch0Ecut_mean-ch0Ecut_FWHM/2,600000);
+	TLine *lEEvu = new TLine(ch0Ecut_mean+ch0Ecut_FWHM/2,0,ch0Ecut_mean+ch0Ecut_FWHM/2,600000);
+	TLine *lEEhl = new TLine(0,ch1Ecut_mean-ch1Ecut_FWHM/2,600000,ch1Ecut_mean-ch1Ecut_FWHM/2);
+	TLine *lEEhu = new TLine(0,ch1Ecut_mean+ch1Ecut_FWHM/2,600000,ch1Ecut_mean+ch1Ecut_FWHM/2);
 	lEEvl->Draw("same");
 	lEEvu->Draw("same");
 	lEEhl->Draw("same");
 	lEEhu->Draw("same");
 
 	c2->cd(2)->SetLogy();
-	c2->cd(2)->SetGridx();
-	TH1D *h1_QDCch0 = new TH1D("QDCch0","QDCch0;QDC (qdc);count/qdc",2000,0,QDCrange);
+	TH1D *h1_QDCch0 = new TH1D("QDCch0","QDCch0;QDC (qdc);count/qdc",2000,0,600000);
 	h1_QDCch0->Draw();
 	TLine *lE0vl = new TLine(ch0Ecut_mean-ch0Ecut_FWHM/2,0,ch0Ecut_mean-ch0Ecut_FWHM/2,100000);
 	TLine *lE0vu = new TLine(ch0Ecut_mean+ch0Ecut_FWHM/2,0,ch0Ecut_mean+ch0Ecut_FWHM/2,100000);
@@ -191,21 +185,19 @@ void newdatareadingOnline(){
 	lE0vu->Draw("same");
 
 	c2->cd(3)->SetLogy();
-	c2->cd(3)->SetGridx();
-	TH1D *h1_QDCch1	= new TH1D("ch1 QDC range used", "ch1 QDC range used;QDC(qdc);count/qdc", 2000, 0, QDCrange);
+	TH1D *h1_QDCch1	= new TH1D("ch1 QDC range used", "ch1 QDC range used;QDC(qdc);count/qdc", 2000, 0, 600000);
 	h1_QDCch1->Draw();
 	TLine *lE1vl = new TLine(ch1Ecut_mean-ch1Ecut_FWHM/2,0,ch1Ecut_mean-ch1Ecut_FWHM/2,100000);
 	TLine *lE1vu = new TLine(ch1Ecut_mean+ch1Ecut_FWHM/2,0,ch1Ecut_mean+ch1Ecut_FWHM/2,100000);
 	lE1vl->Draw("same");
 	lE1vu->Draw("same");
 
-	c2->cd(4)->SetGridx();
-	TH1D *h1_TDCdif	= new TH1D(Form("TDCcf ch0-ch1,ch1 QDCcut %.0fqdc",ch1Ecut_mean), Form("TDCcf dif(ch1 %.0fqdc);TDC ch0-ch1(ns);count/0.05ns",ch1Ecut_mean), 200, -3, 3);	// for Ba 172ps
-	//TH1D *h1_TDCdif	= new TH1D(Form("TDCcf ch0-ch1,ch1 QDCcut %.0fqdc",ch1Ecut_mean), Form("TDCcf dif(ch1 %.0fqdc);TDC ch0-ch1(ns);count/0.05ns",ch1Ecut_mean),1000,-15,15);
+	c2->cd(4);
+	TH1D *h1_TDCdif	= new TH1D(Form("TDCcf ch0-ch1,ch1 QDCcut %.0fqdc",ch1Ecut_mean), Form("TDCcf dif(ch1 %.0fqdc);TDC ch0-ch1(ns);count/0.05ns",ch1Ecut_mean),1000,-15,15);
 	h1_TDCdif->Draw();
 
 	c2->cd(5)->SetLogz();
-	TH2D *h2_TDCdif_QDCch0 = new TH2D(Form("Co60 TDCcf dif(ch0-ch1) by QDC(ch0), (ch1 %.0fqdc)",ch1Ecut_mean),Form("Co60 TDCcf dif by ch0 QDC (ch1 %.0fqdc);QDC,ch0(qdc);TDC dif, ch0-ch1(ns)",ch1Ecut_mean),2000,0,QDCrange,600,-15,15);
+	TH2D *h2_TDCdif_QDCch0 = new TH2D(Form("Ba133 TDCcf dif(ch0-ch1) by QDC(ch0), (ch1 %.0fqdc)",ch1Ecut_mean),Form("Ba133 TDCcf dif by ch0 QDC (ch1 %.0fqdc);QDC,ch0(qdc);TDC dif, ch0-ch1(ns)",ch1Ecut_mean),2000,0,600000,600,-15,15);
 	h2_TDCdif_QDCch0->Draw("COLZ");
 	TLine *lE0vl2 = new TLine(ch0Ecut_mean-ch0Ecut_FWHM/2,-15,ch0Ecut_mean-ch0Ecut_FWHM/2,15);
 	TLine *lE0vu2 = new TLine(ch0Ecut_mean+ch0Ecut_FWHM/2,-15,ch0Ecut_mean+ch0Ecut_FWHM/2,15);
@@ -213,7 +205,7 @@ void newdatareadingOnline(){
 	lE0vu2 -> Draw("same");
 
 	c2->cd(6)->SetLogz();
-	TH2D *h2_TDCdif_QDCch0_nocut = new TH2D("Co60 TDCcf dif(ch0-ch1) by QDC(ch0),nocut ","Co60 TDCcf dif by ch0 QDC, nocut;QDC,ch0(qdc);TDC dif, ch0-ch1(ns)",2000,0,QDCrange, 600, -15, 15);
+	TH2D *h2_TDCdif_QDCch0_nocut = new TH2D("Ba133 TDCcf dif(ch0-ch1) by QDC(ch0),nocut ","Ba133 TDCcf dif by ch0 QDC, nocut;QDC,ch0(qdc);TDC dif, ch0-ch1(ns)",2000,0,600000, 600, -15, 15);
 	h2_TDCdif_QDCch0_nocut->Draw("COLZ");
 
 //file
@@ -237,7 +229,7 @@ void newdatareadingOnline(){
 	int Curr_ient, Prev_ient, Elap_ient;
 	UInt_t Curr_CoinN, Prev_CoinN, Elap_CoinN; 
 	long CurrByte, EndByte;
-	int pqrc_flag[3]={0,0,1};
+	int pqrc_flag[3]={0,0,0};
 	int event_flag=1;
 
 	int ient=0;
@@ -267,9 +259,8 @@ void newdatareadingOnline(){
 
 		EventSize=header[0];
 		BoardID=header[1];
-		//Group=header[2];
+		Group=header[2];
 		OpCh=header[3];
-		StartIndexCellch[OpCh]=header[2];
 		EventNumberch[OpCh]=header[4];
 		TrigTimeTagch[OpCh]=header[5];
 
@@ -278,8 +269,7 @@ void newdatareadingOnline(){
 /*
 		printf("header0,EventSize	 = %d\n",header[0]);
 		printf("header1,BoardID		 = %d\n",header[1]);
-		printf("header2,StartIndexCell	 = %d\n",header[2]);
-		//printf("header2,Group		 = %d\n",header[2]);
+		printf("header2,Group		 = %d\n",header[2]);
 		printf("header3,Channel		 = %d\n",header[3]);
 		printf("header4,EventCounter	 = %d\n",header[4]);
 		printf("header5,TrigTimeTag	 = %d\n",header[5]);
@@ -295,21 +285,19 @@ void newdatareadingOnline(){
 		for (int ich=0; ich<NOpCh-1; ich++){
 			if(EventNumberch[ich]!=EventNumberch[(ich+1)]){event_flag=0; break;}
 			if(TrigTimeTagch[ich]!=TrigTimeTagch[(ich+1)]){event_flag=0; break;}
-			if(StartIndexCellch[ich]!=StartIndexCellch[(ich+1)]){
-				event_flag=0;
-				printf("StartIndexCell missmatch!\n", stderr);
-				break;}
 		}
 		if(event_flag){
-			EventNumber = EventNumberch[0]; TrigTimeTag = TrigTimeTagch[0];	StartIndexCell=StartIndexCellch[0];
+//		if(EventNumberch[0]==EventNumberch[1] && TrigTimeTagch[0]==TrigTimeTagch[1]){
+			EventNumber = EventNumberch[0]; TrigTimeTag = TrigTimeTagch[0];
 
 			NHitCh=0;
 			for (int ich=0; ich<NOpCh; ich++){
 				rPHch[ich] = pulseheight(waveformch[ich]);
-				if(rPHch[ich]>= 50){
-				//if(rPHch[ich]>=250){
+				//if(rPHch[ich]>= 50){
+				if(rPHch[ich]>=500){
 					QDCch[ich] = QDCf(waveformch[ich]);
 					TDCch[ich] = TDCcf(waveformch[ich], waveformtime, 10, 0.15);
+					TDC3ch[ich] = TDCcf3(waveformch[ich], waveformtime, 10, 0.15);
 					h1_rPH[ich]->Fill(rPHch[ich]);
 					h1_QDC[ich]->Fill(QDCch[ich]);
 					h1_TDC[ich]->Fill(TDCch[ich]);
@@ -319,6 +307,7 @@ void newdatareadingOnline(){
 					rPH[NHitCh] = rPHch[ich];
 					QDC[NHitCh] = QDCch[ich];
 					TDC[NHitCh] = TDCch[ich];
+					TDC3[NHitCh] = TDC3ch[ich];
 					NHitCh=NHitCh+1;
 				}
 			}	
@@ -366,33 +355,18 @@ void newdatareadingOnline(){
 		}
 	ient++;
 	}
-	c1->cd(1);	gPad->Modified();	gPad->Update();
-	c1->cd(2);	gPad->Modified();	gPad->Update();
-	c1->cd(3);	gPad->Modified();	gPad->Update();
-	c1->cd(4);	gPad->Modified();	gPad->Update();
-	c1->cd(5);	gPad->Modified();	gPad->Update();
-	c1->cd(6);	gPad->Modified();	gPad->Update();
-	c2->cd(1);	gPad->Modified();	gPad->Update();
-	c2->cd(2);	gPad->Modified();	gPad->Update();
-	c2->cd(3);	gPad->Modified();	gPad->Update();
-	c2->cd(4);	gPad->Modified();	gPad->Update();
-	c2->cd(5);	gPad->Modified();	gPad->Update();
-	c2->cd(6);	gPad->Modified();	gPad->Update();
-//	gPad->Modified();
-//	gPad->Update();
+	gPad->Modified();
+	gPad->Update();
 
 	printf("\nReading completed.Entries: %d, Event numbers: %u, CoinEventNumber %u\n", ient, EventNumber, CoinEventNumber);
 
 	c2->cd(4);
-	TF1 *fftn = new TF1("fftn", "[3]*exp([0]*([0]*[1]*[1]-2*(x-[2]))/2)*TMath::Erfc(-([0]*[1]*[1]+(x-[2]))/(TMath::Sqrt(2)*[1]))+[4]",-1,1);
+	TF1 *fftn = new TF1("fftn", "[3]*exp([0]*([0]*[1]*[1]-2*(x-[2]))/2)*TMath::Erfc(-([0]*[1]*[1]+(x-[2]))/(TMath::Sqrt(2)*[1]))",-1,1);
 	fftn->SetParName(0,"lambda");
 	fftn->SetParName(1,"sigma");
 	fftn->SetParName(2,"mu");
 	fftn->SetParName(3,"amp");
-	fftn->SetParName(4,"constant");
 	h1_TDCdif->Fit(fftn,"M", "", -1, 1);
-
-	printf("T=log(2)/lambda=%.4fns, sigma/1.414= %.4fns\n", log(2)/(fftn->GetParameter(0)), fftn->GetParameter(1)/1.414);
 
 	tree->Write();
 	c1->Write();

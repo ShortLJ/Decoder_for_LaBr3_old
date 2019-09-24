@@ -52,7 +52,8 @@ void NewCanvas(TCanvas *c1, TH1D *h1, TH1D *h2, TH1D *h3, TH1D *h4);
 //////////////////////main function////////////////////////////////
 
 void newdatareadingOnline(){
-	char filename[90]="Nosource_att66_run01";
+	//char filename[90]="Nosource_att66_run01";
+	char filename[90]="Ba133_att66_run02_Xsc_lowtrhd";
 	//char filename[90]="Ba133_att00_run06_Xsc_distance";
 	FILE *datafile = fopen(Form("%s.dat",filename),"rb");	// moved from latter to here
 	if(datafile==NULL){
@@ -285,7 +286,6 @@ void newdatareadingOnline(){
 			if(TrigTimeTagch[ich]!=TrigTimeTagch[(ich+1)]){event_flag=0; break;}
 		}
 		if(event_flag){
-//		if(EventNumberch[0]==EventNumberch[1] && TrigTimeTagch[0]==TrigTimeTagch[1]){
 			EventNumber = EventNumberch[0]; TrigTimeTag = TrigTimeTagch[0];
 
 			NHitCh=0;
@@ -354,6 +354,7 @@ void newdatareadingOnline(){
 	gPad->Modified();
 	gPad->Update();
 
+	printf("\rdecoding... at %d of %u (%.3f) %.0fient/s, CoinEventNum:%u (%.1f%%) - %.2fHz ", ient, numevent, (float) ient/numevent, (float)Elap_ient*1000.0f/(float)Elap_Time, Curr_CoinN,(float)Curr_CoinN*100.0f/(float)ient, (float)Elap_CoinN*1000.0f/(float)Elap_Time);
 	printf("\nReading completed.Entries: %d, Event numbers: %u, CoinEventNumber %u\n", ient, EventNumber, CoinEventNumber);
 
 	c2->cd(4);

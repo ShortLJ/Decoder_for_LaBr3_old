@@ -7,7 +7,7 @@ double getminimum(Float_t waveform[520]){
 }
 
 double pedsum(Float_t waveform[520]){
-	int pedsum=0;
+	float pedsum=0;
 	for (int iwft=0; iwft<80;iwft++){
 		pedsum = pedsum + waveform[iwft];
 	}
