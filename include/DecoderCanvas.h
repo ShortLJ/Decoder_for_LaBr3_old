@@ -8,6 +8,8 @@ class DECODER_CANVAS{
 		void Construct();
 		void Destruct();
 		void Modified_Update(char flag);
+		void Print(char _filename[90]);
+		//void CanvasWrite(TFile *_treefile);
 
 		DECODER_CANVAS(UInt_t _NOpCh){
 			NOpCh=_NOpCh;
@@ -17,7 +19,6 @@ class DECODER_CANVAS{
 		~DECODER_CANVAS(){
 		}
 };
-
 
 void DECODER_CANVAS::Construct(){
 	Canvas_Decoding = new TCanvas("Decoding","Decoding",1800, 1000);
@@ -42,36 +43,42 @@ void DECODER_CANVAS::Destruct(){
 }
 
 void DECODER_CANVAS::Modified_Update(char flag){
-	if(flag & 0x01){
-		for (int ich=0; ich<NOpCh; ich++){
+	for (int ich=0; ich<NOpCh; ich++){
+		if(flag & 0x01){
 			Canvas_Decoding->cd(1+ich+0*NOpCh); gPad->Modified(); gPad->Update();
 			Canvas_Decoding->cd(1+ich+1*NOpCh); gPad->Modified(); gPad->Update();
 			Canvas_Decoding->cd(1+ich+2*NOpCh); gPad->Modified(); gPad->Update();
 		}
-	}
-	if(flag & 0x02){ 
-		for (int ich=0; ich<NOpCh; ich++){
-			for (int jch=0; jch<NOpCh; jch++){
+		for (int jch=0; jch<NOpCh; jch++){
+			if(flag & 0x02){ 
 				Coincidence[0]->cd(1+ich+jch*NOpCh); gPad->Modified(); gPad->Update();
 			}
-		}
-	}
-	if(flag & 0x04){ 
-		for (int ich=0; ich<NOpCh; ich++){
-			for (int jch=0; jch<NOpCh; jch++){
+			if(flag & 0x04){ 
 				Coincidence[1]->cd(1+ich+jch*NOpCh); gPad->Modified(); gPad->Update();
 			}
-		}
-	}
-	if(flag & 0x08){
-		for (int ich=0; ich<NOpCh; ich++){
-			for (int jch=0; jch<NOpCh; jch++){
+			if(flag & 0x08){
 				Coincidence[2]->cd(1+ich+jch*NOpCh); gPad->Modified(); gPad->Update();
 			}
 		}
 	}
 	return;
 }
+
+void DECODER_CANVAS::Print(char _filename[90]){
+	Canvas_Decoding->Print(Form("jpg/%s_Decoding_c1.jpg",_filename));
+	for (int i=0; i<3; i++){
+	Coincidence[i]->Print(Form("jpg/%s_Decoding_c%d.jpg",_filename,i+1));
+	}
+}
+/*
+void DECODER_CANVAS::CanvasWrite(TFile *_treefile){
+	_treefile->cd();
+	Canvas_Decoding->Write();
+	for (int i=0; i<3; i++){
+	Coincidence[i]->Write();
+	}
+}
+*/
 
 ////////////////////////////////////////////
 
