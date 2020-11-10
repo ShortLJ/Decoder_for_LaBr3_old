@@ -29,11 +29,11 @@ void DECODER_CANVAS::Construct(){
 		Canvas_Decoding[igr]->Divide(NOpCh,3);
 	}
 
-	//Coincidence = new TCanvas*[3];
-	//Coincidence[0] = new TCanvas("QDC_H1_COIN", "QDC_H1_COIN", 900, 954);
-	//Coincidence[1] = new TCanvas("QDC_H2_COIN", "QDC_H1_COIN", 900, 954);
-	//Coincidence[2] = new TCanvas("TDCdif_H1_COIN", "TDCdif_H1_COIN", 900, 954);
-	//for(int i=0; i<3; i++)	Coincidence[i]->Divide(NOpCh,NOpCh);
+	Coincidence = new TCanvas*[3];
+	Coincidence[0] = new TCanvas("QDC_H1_COIN", "QDC_H1_COIN", 900, 954);
+	Coincidence[1] = new TCanvas("QDC_H2_COIN", "QDC_H1_COIN", 900, 954);
+	Coincidence[2] = new TCanvas("TDCdif_H1_COIN", "TDCdif_H1_COIN", 900, 954);
+	for(int i=0; i<3; i++)	Coincidence[i]->Divide(NOpCh,NOpCh);
 
 	return;
 }
@@ -41,10 +41,10 @@ void DECODER_CANVAS::Construct(){
 void DECODER_CANVAS::Destruct(){
 	for (int igr=0; igr<NOpGr; igr++){	if(!Canvas_Decoding[igr]) delete Canvas_Decoding[igr];	}
 	if(!Canvas_Decoding) delete[] Canvas_Decoding;
-	//if(!Coincidence[0]) delete Coincidence[0];
-	//if(!Coincidence[1]) delete Coincidence[1];
-	//if(!Coincidence[2]) delete Coincidence[2];
-	//if(!Coincidence) delete[] Coincidence;
+	if(!Coincidence[0]) delete Coincidence[0];
+	if(!Coincidence[1]) delete Coincidence[1];
+	if(!Coincidence[2]) delete Coincidence[2];
+	if(!Coincidence) delete[] Coincidence;
 	return;
 }
 
@@ -57,7 +57,7 @@ void DECODER_CANVAS::Modified_Update(char flag){
 				Canvas_Decoding[igr]->cd(1+ich+2*NOpCh); gPad->Modified(); gPad->Update();
 			}
 		}
-/*		for (int jch=0; jch<NOpCh; jch++){
+		for (int jch=0; jch<NOpCh; jch++){
 			if(flag & 0x02){ 
 				Coincidence[0]->cd(1+ich+jch*NOpCh); gPad->Modified(); gPad->Update();
 			}
@@ -68,13 +68,13 @@ void DECODER_CANVAS::Modified_Update(char flag){
 				Coincidence[2]->cd(1+ich+jch*NOpCh); gPad->Modified(); gPad->Update();
 			}
 		}
-*/	}
+	}
 	return;
 }
 
 void DECODER_CANVAS::Print(char _filename[90]){
 	for (int igr=0; igr<NOpGr; igr++)	Canvas_Decoding[igr]->Print(Form("jpg/%s_Decoding_c1_gr%d.jpg",_filename, igr));
-//	for (int i=0; i<3; i++)	Coincidence[i]->Print(Form("jpg/%s_Decoding_c%d.jpg",_filename,i+1));
+	for (int i=0; i<3; i++)	Coincidence[i]->Print(Form("jpg/%s_Decoding_c%d.jpg",_filename,i+1));
 }
 /*
 void DECODER_CANVAS::CanvasWrite(TFile *_treefile){
@@ -116,11 +116,10 @@ class DECODER_PRIMARY_H1{
 inline void DECODER_PRIMARY_H1::Draw(DECODER_CANVAS *canvas, char flag=0x0F){
 	if(!(flag & 0x01)) return;
 	for (int ich=0; ich<NOpCh; ich++){
-		canvas->Canvas_Decoding[igr]->cd(1+ich+0*NOpCh)->SetLogy();
 		canvas->Canvas_Decoding[igr]->cd(1+ich+0*NOpCh)->SetGridx();	rPH[ich]->Draw();
 		canvas->Canvas_Decoding[igr]->cd(1+ich+1*NOpCh)->SetLogy();
 		canvas->Canvas_Decoding[igr]->cd(1+ich+1*NOpCh)->SetGridx();	QDC[ich]->Draw();
-		canvas->Canvas_Decoding[igr]->cd(1+ich+2*NOpCh)->SetLogy();
+		//canvas->Canvas_Decoding[igr]->cd(1+ich+2*NOpCh)->SetLogy();
 		canvas->Canvas_Decoding[igr]->cd(1+ich+2*NOpCh)->SetGridx();	TDC[ich]->Draw();
 	}
 	return;

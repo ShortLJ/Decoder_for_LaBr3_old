@@ -2,6 +2,7 @@ class Pulse1024{
 	private:
 		unsigned char analyze_flag;
 		float waveform_cfd[1024];
+		int minidx;
 
 		//TF1* f1;
 		//TF1* f1 = new TF1("f1", "pol3", -1, 2);
@@ -14,9 +15,11 @@ class Pulse1024{
 
 		int ped_flag_check();
 		int cfd_flag_check();
+		int min_flag_check();
 
 	public:
-		UInt_t EventSize, BoardID, StartIndexCell, Channel, EventNumber, TrigTimeTag;
+		UInt_t EventSize, Group, StartIndexCell, Channel, EventNumber, TrigTimeTag;
+		//UInt_t EventSize, BoardID, StartIndexCell, Channel, EventNumber, TrigTimeTag;
 		float waveform[1024];
 		float pedestal, rPH, QDC, TDC;
 
@@ -29,14 +32,16 @@ class Pulse1024{
 		void Analyze(int ps=0, int pe=200, int qs=200, int qe=950, int cd=0, float cf=1, float tr=1, int ts=200, int te=400);
 		void Waveform_Ext(float arrdest[1024]);
 
-		Pulse1024(UInt_t _header[6], float _waveform[1024]){
+		Pulse1024(UInt_t _header[6]){
+		//Pulse1024(UInt_t _header[6], float _waveform[1024]){
 			EventSize=_header[0];
-			BoardID=_header[1];
+			Group=_header[1];
+			//BoardID=_header[1];
 			StartIndexCell=_header[2];
 			Channel=_header[3];
 			EventNumber=_header[4];
 			TrigTimeTag=_header[5];
-			waveformcopyf(waveform,_waveform);
+			//waveformcopyf(waveform,_waveform);
 			analyze_flag = 0x00;
 			//printf("Pulse1024 init, eventnumber %u\n", EventNumber);
 		}
@@ -55,6 +60,11 @@ inline int Pulse1024::cfd_flag_check(){
 	ped_flag_check();
 	if(analyze_flag & 0x02) return 1;
 	printf("\nCFDf first\n",stderr);
+	return 0;
+}
+inline int Pulse1024::min_flag_check(){
+	if(analyze_flag & 0x04) return 1;
+	printf("\nrPHf first\n",stderr);
 	return 0;
 }
 
@@ -82,13 +92,19 @@ void Pulse1024::pedestalf(int startidx=0, int endidx=200){
 void Pulse1024::rPHf(){
 	if(!ped_flag_check()) return;
 	float ADCmin=4098;
+	int minidx_=0;
 	//printf("EventNumber %u &ADCmin %x \n", EventNumber, &ADCmin);
-	for (int i=0; i<1024;i++){
+	for (int i=0; i<1024; i++){
 		if (ADCmin>waveform[i]){
 			ADCmin = waveform[i];
+			minidx_= i;
 		}
 	}
+	//rPH = pedestal;
+	//rPH = 4096-ADCmin;
 	rPH = pedestal-ADCmin;
+	minidx = minidx_;
+	analyze_flag |= 0x04;
 	return;
 }
 
@@ -117,18 +133,24 @@ void Pulse1024::CFDf(Int_t delay, float fraction){
 
 void Pulse1024::TDCf(float sampling_rate, int startidx=200, int endidx=400){
 	if(!cfd_flag_check()) return;
+	if(!min_flag_check()) return;
+	//TDC=(float)minidx/sampling_rate;
+	//return;
 	int minwft=0;
 	int maxwft=0;
 	float iwfttorecord=-1;
 	float timetorecord=-2;
-	for (int iwft=startidx; iwft<endidx; iwft++){
+	for (int iwft=minidx-100; iwft<minidx+100; iwft++){
+		if(iwft<0) continue;
+		if(iwft>950) continue;
+	//for (int iwft=startidx; iwft<endidx; iwft++){
 		if(waveform_cfd[iwft]>waveform_cfd[maxwft]){maxwft=iwft;}
 		if(waveform_cfd[iwft]<waveform_cfd[minwft]){minwft=iwft;}
 	}
-	if(minwft>maxwft) return -4;
+	if(minwft>maxwft){TDC=-4; return -4;}
 		//printf("\nminwft(%d)>maxwft(%d)\n",minwft,maxwft);
 	for (int iwft=minwft; iwft<maxwft+1; iwft++){
-		if(iwft==maxwft) return -3; 
+		if(iwft==maxwft){TDC=-3; return -3; }
 		//if(iwft==maxwft) printf("\nfail to find the pattern btw waveform_cfd[%d]=%.2f,waveform_cfd[%d]=%.2f\n", minwft, waveform_cfd[minwft], maxwft, waveform_cfd[maxwft]);
 		if(waveform_cfd[iwft-1]<=0 && 0<=waveform_cfd[iwft] && waveform_cfd[iwft]<=waveform_cfd[iwft+1]){
 		//if(waveform_cfd[iwft-1]<0 && 0<waveform_cfd[iwft] && waveform_cfd[iwft]<waveform_cfd[iwft+1] && waveform_cfd[iwft+1]<waveform_cfd[iwft+2]){

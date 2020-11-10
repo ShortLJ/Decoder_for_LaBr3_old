@@ -1,3 +1,5 @@
+#include <sys/time.h> /* struct timeval, select() */
+
 static long get_time(){
     long time_ms;
     struct timeval t1;
